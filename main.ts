@@ -19,7 +19,9 @@ controller.up.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . . . 1 . 1 . . . . . . . 
         `)
     direction = 1
-    mySprite.ay += -50
+    if (mySprite.ay > -50) {
+        mySprite.ay += -25
+    }
 })
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     music.pewPew.play()
@@ -149,7 +151,9 @@ controller.left.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . . . . . . . . . . . . . 
         `)
     direction = 2
-    mySprite.ax += -50
+    if (mySprite.ax > -50) {
+        mySprite.ax += -25
+    }
 })
 controller.right.onEvent(ControllerButtonEvent.Released, function () {
     mySprite.setImage(img`
@@ -212,7 +216,9 @@ controller.right.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . . . . . . . . . . . . . 
         `)
     direction = 4
-    mySprite.ax += 50
+    if (mySprite.ax < 50) {
+        mySprite.ax += 25
+    }
 })
 controller.up.onEvent(ControllerButtonEvent.Released, function () {
     mySprite.setImage(img`
@@ -255,7 +261,9 @@ controller.down.onEvent(ControllerButtonEvent.Pressed, function () {
         . . . . . . . . . . . . . . . . 
         `)
     direction = 3
-    mySprite.ay += 50
+    if (mySprite.ay < 50) {
+        mySprite.ay += 25
+    }
 })
 sprites.onOverlap(SpriteKind.Projectile, SpriteKind.Enemy, function (sprite, otherSprite) {
     music.smallCrash.play()
@@ -268,6 +276,9 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
     info.changeLifeBy(-1)
     info.changeScoreBy(1)
     mySprite.setPosition(74, 52)
+    mySprite.ax = 0
+    mySprite.ay = 0
+    mySprite.setVelocity(0, 0)
     otherSprite.destroy(effects.spray, 500)
 })
 let projectile: Sprite = null
@@ -277,25 +288,29 @@ let direction = 0
 info.setLife(3)
 tiles.setTilemap(tilemap`level1`)
 direction = 4
-mySprite = sprites.create(img`
-    . . . . . . . . . . . . . . . . 
-    . . . . . . . . . . . . . . . . 
-    . . . . . . . . . . . . . . . . 
-    . . 1 . . . . . . . . . . . . . 
-    . . . 1 1 1 . . . . . . . . . . 
-    . . . . . . 1 1 . . . . . . . . 
-    . . . . . . . . 1 1 1 . . . . . 
-    . . . . . . . . . . . 1 1 1 . . 
-    . . . . . . . . 1 1 1 . . . . . 
-    . . . . . . 1 1 . . . . . . . . 
-    . . . 1 1 1 . . . . . . . . . . 
-    . . 1 . . . . . . . . . . . . . 
-    . . . . . . . . . . . . . . . . 
-    . . . . . . . . . . . . . . . . 
-    . . . . . . . . . . . . . . . . 
-    . . . . . . . . . . . . . . . . 
-    `, SpriteKind.Player)
 controller.moveSprite(mySprite, 10, 10)
+for (let value of tiles.getTilesByType(assets.tile`myTile1`)) {
+    mySprite = sprites.create(img`
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . 1 . . . . . . . . . . . . . 
+        . . . 1 1 1 . . . . . . . . . . 
+        . . . . . . 1 1 . . . . . . . . 
+        . . . . . . . . 1 1 1 . . . . . 
+        . . . . . . . . . . . 1 1 1 . . 
+        . . . . . . . . 1 1 1 . . . . . 
+        . . . . . . 1 1 . . . . . . . . 
+        . . . 1 1 1 . . . . . . . . . . 
+        . . 1 . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        . . . . . . . . . . . . . . . . 
+        `, SpriteKind.Player)
+    tiles.placeOnTile(mySprite, value)
+    tiles.setTileAt(value, assets.tile`myTile`)
+}
 scene.cameraFollowSprite(mySprite)
 for (let value of tiles.getTilesByType(assets.tile`myTile0`)) {
     rock = sprites.create(img`
@@ -318,4 +333,11 @@ for (let value of tiles.getTilesByType(assets.tile`myTile0`)) {
         `, SpriteKind.Enemy)
     tiles.placeOnTile(rock, value)
     tiles.setTileAt(value, assets.tile`myTile`)
+    rock.setVelocity(randint(0, 50), randint(0, 50))
+    rock.setBounceOnWall(true)
 }
+forever(function () {
+    if (info.score() == 7) {
+        game.over(true, effects.confetti)
+    }
+})
